@@ -659,7 +659,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		print-color-adjust: exact;
 		}
 	}
-</style><style id="st">body{font-family:-apple-system,Arial,sans-serif;margin:0;background:#fff;color:#1d2433}#porte{max-width:340px;margin:22vh auto 0;padding:20px}#porte input,#porte button{font:inherit;font-size:17px;width:100%;padding:12px;margin-top:10px;border-radius:9px;border:1px solid #c9cfdb;box-sizing:border-box}#porte button{background:#004ca6;color:#fff}</style></head><body><form id="porte"><b>Code d'accès</b><input id="code" aria-label="Code d'accès" autocapitalize="none" autocorrect="off" autocomplete="off"><button id="ouvrir">Ouvrir</button><p id="info"></p></form><script>/* @preserve
+</style><style id="st">body{font-family:-apple-system,Arial,sans-serif;margin:0;background:#fff;color:#1d2433}#porte{max-width:340px;margin:22vh auto 0;padding:20px}#porte input,#porte button{font:inherit;font-size:17px;width:100%;padding:12px;margin-top:10px;border-radius:9px;border:1px solid #c9cfdb;box-sizing:border-box}#porte button{background:#004ca6;color:#fff}</style></head><body><form id="porte"><b>Code à 4 chiffres</b><input id="code" aria-label="Code d'accès" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button id="ouvrir">Ouvrir</button><p id="info"></p></form><script>/* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
@@ -2602,11 +2602,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
 // =leaflet-rotate-src.js.map
 </script><script>
 'use strict';
-const V='ffc3b5371ecc',info=t=>document.getElementById('info').textContent=t;
+const H=location.hash.slice(1);let cle=/^[a-z0-9]{24,}$/.test(H)?H:'';try{if(cle)localStorage.setItem('boitage_cle',cle);else cle=localStorage.getItem('boitage_cle')||'';}catch(e){}
+const V='375effd9148d',info=t=>document.getElementById('info').textContent=t;
 async function entrer(code,auto){
+  if(!cle){info('Lien incomplet : ouvrez le lien entier reçu par mail.');return;}
   info('Ouverture…');
   let b;try{const r=await fetch('contenu.bin?v='+V);if(!r.ok)throw 0;b=new Uint8Array(await r.arrayBuffer());}catch(e){info('Contenu introuvable : vérifiez le réseau.');return;}
-  let p;try{const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveKey']);const k=await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:b.slice(0,16),iterations:600000},m,{name:'AES-GCM',length:256},false,['decrypt']);p=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(16,28)},k,b.slice(28))));}catch(e){info(auto?'':'Code incorrect.');return;}
+  let p;try{const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(cle+':'+code),'PBKDF2',false,['deriveKey']);const k=await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:b.slice(0,16),iterations:600000},m,{name:'AES-GCM',length:256},false,['decrypt']);p=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(16,28)},k,b.slice(28))));}catch(e){info(auto?'':'Code incorrect.');return;}
   try{localStorage.setItem('boitage_code',code);}catch(e){}
   document.getElementById('st').textContent=p.style;document.body.innerHTML=p.corps;
   window.__D=p.D;const s=document.createElement('script');s.textContent='const D=window.__D;'+p.app;document.body.appendChild(s);
